@@ -69,13 +69,13 @@ const { log } = require("console");
  
  app.post('/update-categories/',upload.single('image'),categoryController.update_category)
  app.post('/delete_category/',categoryController.delete_category)
- app.post('/createProduct/:category_id',upload.single('image'),productController.createProduct)
+ // app.post('/createProduct/:category_id',upload.single('image'),productController.createProduct)
  app.get('/getMainProductById/:product_id',adminController.getMainProductById)
 
 //  app.get('/getProductById/:product_id',productController.getProductById)
- app.patch('/updateProduct/:product_id',upload.single('image'),productController.updateProduct)
- app.post('/deleteProduct/:product_id',productController.deleteProduct)
- app.get('/getProductsByCategoryId/:category_id',productController.getProductsByCategoryId)
+ // app.patch('/updateProduct/:product_id',upload.single('image'),productController.updateProduct)
+ // app.post('/deleteProduct/:product_id',productController.deleteProduct)
+ // app.get('/getProductsByCategoryId/:category_id',productController.getProductsByCategoryId)
  app.post('/Admin_signup',adminController.Admin_signup)
  app.get('/Admin_login',adminController.Admin_login)
 
