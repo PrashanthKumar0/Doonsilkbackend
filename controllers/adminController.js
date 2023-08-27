@@ -136,10 +136,9 @@ const getUsersByMonth = async (req, res) => {
   
 const addProductWithVariants = async (req, res) => {
   try {
-    const { name, description, category_id, price, discount_percentage, size, color,color_hex } = req.body;
+    const { name, description, category_id, price, discount_percentage, size, color, color_hex } = req.body;
     const images = req.files;
 
-    // Check if the provided category_id exists in the description table
     const existingDescription = await db.category.findOne({
       where: {
         category_id: category_id,
@@ -147,11 +146,11 @@ const addProductWithVariants = async (req, res) => {
     });
 
     if (!existingDescription) {
-      return res.status(400).json({ message: 'Invalid category_id. category not found.' });
+      return res.status(400).json({ message: 'Invalid category_id. Category not found.' });
     }
 
     // Create the main product
-    const newProduct = await db.main_product.create({
+    const newProductData = {
       name,
       description,
       category_id,
@@ -159,12 +158,20 @@ const addProductWithVariants = async (req, res) => {
       discount_percentage,
       size,
       color,
-      image1: images['image1'][0].filename,
-      image2: images['image2'][0].filename,
-      image3: images['image3'][0].filename,
-      color_hex
+      color_hex,
+    };
 
-    });
+    if (images && images['image1'] && images['image1'][0]) {
+      newProductData.image1 = images['image1'][0].filename;
+    }
+    if (images && images['image2'] && images['image2'][0]) {
+      newProductData.image2 = images['image2'][0].filename;
+    }
+    if (images && images['image3'] && images['image3'][0]) {
+      newProductData.image3 = images['image3'][0].filename;
+    }
+
+    const newProduct = await db.main_product.create(newProductData);
 
     res.status(201).json({ message: 'Main product added successfully.', data: newProduct });
   } catch (error) {
@@ -172,7 +179,6 @@ const addProductWithVariants = async (req, res) => {
     res.status(500).json({ message: 'Error adding main product.' });
   }
 };
-
 
 const addVariant = async (req, res) => {
   try {
