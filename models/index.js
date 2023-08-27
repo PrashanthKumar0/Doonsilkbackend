@@ -1,18 +1,23 @@
 const { Sequelize,DataTypes } = require('sequelize');
 
+const sequelize = new Sequelize(process.env.MYSQL_DATABASE, process.env.MYSQL_USER, process.env.MYSQL_PASSWORD, {
+   host: process.env.MYSQL_HOST,
+   logging:false,
+   dialect: 'mysql',
+ });
 // const sequelize = new Sequelize('sql6636217', 'sql6636217', 'qsIXCR9U5q', {
 //   host: 'sql6.freesqldatabase.com',
 //   logging:false,
 //   dialect: 'mysql',
 // });
 
-const sequelize = new Sequelize('newsilkecommecre', 'root', 'cprakhar999@gmail.com', {
-  host: 'localhost',
-  logging:false,
-  dialect: 'mysql',
+//const sequelize = new Sequelize('newsilkecommecre', 'root', 'cprakhar999@gmail.com', {
+  //host: 'localhost',
+  //logging:false,
+  //dialect: 'mysql',
   // operatorsAliases: false,
 
-});
+//});
 
 // const sequelize = new Sequelize('Database-1', 'dbmasteruser', '05fzJZcepiwlf3,A,6mQ}cM0.&a*[1bi', {
 //   host: 'ls-fa310113994b9814904f35c6ec62956753e63a01.c8mpioyjghq2.ap-south-1.rds.amazonaws.com',
