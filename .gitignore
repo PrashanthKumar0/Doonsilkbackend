@@ -127,5 +127,8 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+#public folder
+public
+
 #next js cache file
 .next/cache
