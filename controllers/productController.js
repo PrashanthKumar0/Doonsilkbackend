@@ -156,7 +156,7 @@ var main_product = db.main_product
       const categoryId = req.params.category_id;
   
       // Find all products with the given category ID
-      const products = await product.findAll({
+      const products = await main_product.findAll({
         where: {
           category_id: categoryId,
         },
