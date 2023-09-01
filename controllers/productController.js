@@ -2,7 +2,8 @@
 var db = require('../models/index')
 // var category = db.category
 // var product = db.product
-// const { Op } = require('sequelize');
+const { Op } = require('sequelize');
+var main_product = db.main_product
 
 
 
@@ -150,27 +151,29 @@ var db = require('../models/index')
 //   };
   
 
-//   const getProductsByCategoryId = async (req, res) => {
-//     try {
-//       const categoryId = req.params.category_id;
+  const getProductsByCategoryId = async (req, res) => {
+    try {
+      const categoryId = req.params.category_id;
   
-//       // Find all products with the given category ID
-//       const products = await product.findAll({
-//         where: {
-//           category_id: categoryId,
-//         },
-//       });
+      // Find all products with the given category ID
+      const products = await product.findAll({
+        where: {
+          category_id: categoryId,
+        },
+      });
   
-//       if (products.length === 0) {
-//         return res.status(404).json({ message: 'No products found for the specified category.' });
-//       }
+      if (products.length === 0) {
+        return res.status(404).json({ message: 'No products found for the specified category.' });
+      }
   
-//       return res.status(200).json({ message: 'Products retrieved successfully.', data: products });
-//     } catch (error) {
-//       console.error('Error getting products by category:', error);
-//       res.status(500).json({ message: 'Error getting products by category.' });
-//     }
-//   };
+      return res.status(200).json({ message: 'Products retrieved successfully.', data: products });
+    } catch (error) {
+      console.error('Error getting products by category:', error);
+      res.status(500).json({ message: 'Error getting products by category.' });
+    }
+  };
   
 
-  // module.exports={createProduct,getProductById,updateProduct,deleteProduct,getProductsByCategoryId    }
+  module.exports={
+          getProductsByCategoryId
+  }
