@@ -75,7 +75,7 @@ const { log } = require("console");
 //  app.get('/getProductById/:product_id',productController.getProductById)
  // app.patch('/updateProduct/:product_id',upload.single('image'),productController.updateProduct)
  // app.post('/deleteProduct/:product_id',productController.deleteProduct)
- // app.get('/getProductsByCategoryId/:category_id',productController.getProductsByCategoryId)
+ app.get('/getProductsByCategoryId/:category_id',productController.getProductsByCategoryId)
  app.post('/Admin_signup',adminController.Admin_signup)
  app.get('/Admin_login',adminController.Admin_login)
 
