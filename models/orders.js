@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    const Order = sequelize.define('userorder', {
+    const Order = sequelize.define('userorder_', {
       phone: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -38,14 +38,14 @@ module.exports = (sequelize, DataTypes) => {
       },
       category_id: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
       },
       CartItems_id: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
       },
     }, 
-  {  tableName: 'userorder',
+  {  tableName: 'userorder_',
     timestamps: true});
   
     return Order;
