@@ -822,24 +822,10 @@ const order = async (req, res) => {
       country,
       state,
       postalCode,
-      productid,
-      categoryId,
       quantity,
-      CartItems_id
+   
       
     } = req.body;
-
-    // Check if product_id exists
-  
-
-    const order = await db.cartItem.findOne({
-      where: {
-        CartItems_id: CartItems_id,
-      },
-    });
-    if (!CartItems_id) {
-      return res.status(404).json({ message: 'CartItems_id not found.' });
-    }
 
     // Check if user_id exists
     const user = await db.userProfile.findOne({
@@ -861,16 +847,20 @@ const order = async (req, res) => {
       country,
       state,
       postalCode,
-      category_id: categoryId,
       user_id: userId, // Use lowercase user_id
       quantity,
-      CartItems_id
+  
     });
+    await CartItems.destroy({
+      where: {
+        user_id: userId,
+      },
+    });
+
 
     const mailSubject = 'New Order Placed'; // No need for `const` keyword here
     const content = `A new order has been placed with the following details:\n\n
              User ID: ${userId}\n
-             Product ID: ${productid}\n
              Quantity: ${quantity}\n
              `;
       await sendorderMail('ucrf.silk@gmail.com', mailSubject, content);
@@ -884,7 +874,6 @@ const order = async (req, res) => {
     res.status(500).json({ message: 'Error confirming order' });
   }
 };
-
 
 
 const getcheckoutProducts = async (req, res) => {
