@@ -836,7 +836,7 @@ const order = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });
     }
-
+   const email = user.email; 
     // Create a new order in the database
     const newOrder = await db.orders.create({
       phone,
@@ -863,7 +863,7 @@ const order = async (req, res) => {
              User ID: ${userId}\n
              Quantity: ${quantity}\n
              `;
-      await sendorderMail('ucrf.silk@gmail.com', mailSubject, content);
+      await sendorderMail(email, mailSubject, content);
 
     // Send email notification to admin
   ;
