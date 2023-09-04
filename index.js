@@ -116,6 +116,8 @@ app.post('/addProductWithVariants', upload.fields([
   app.post('/updateBanner', upload.fields([{ name: 'image1' }, { name: 'image2' }, { name: 'image3' }]),adminController.updateBanner)
   app.post('/addStockStatus',adminController.addStockStatus)
   app.post('/updateStockStatus',adminController.updateStockStatus)
+  app.post('/addImage',upload.single('image'), adminController.addImage)
+
 
 
   
