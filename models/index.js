@@ -53,6 +53,8 @@ sequelize.authenticate()
   db.wishlist = require('./wishlist')(sequelize,DataTypes)
   db.stock = require('./stock')(sequelize,DataTypes)
   db.orders = require('./orders')(sequelize,DataTypes)
+  db.image = require('./image')(sequelize,DataTypes)
+
 
 
 
