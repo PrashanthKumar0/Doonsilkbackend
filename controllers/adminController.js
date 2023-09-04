@@ -13,6 +13,7 @@ var notice = db.notice
 var announcement = db.announcement
 var tenderForm = db.tenderForm
 var banner = db.banner
+var image = db.image
 
 
 
@@ -642,6 +643,20 @@ const updateStockStatus = async (req, res) => {
   }
 };
 
+const addImage = async(req,res)=>{
+  try {
+  const image = req.file.filename
+  const addImage = await db.image.create({
+   image:image
+  })
+  await addImage.save
+  res.status(201).json({ message: 'image added successfully.', data: addImage });
+} catch (error) {
+  console.error('Error adding image:', error);
+  res.status(500).json({ message: 'Error adding image.' });
+}
+
+}
 
 
 
@@ -649,4 +664,4 @@ const updateStockStatus = async (req, res) => {
 
   module.exports ={Admin_signup,Admin_login,getAllUsers,getUsersByMonth,addProductWithVariants,addVariant,updateMainProduct,
     getMainProductById,deleteMainProduct,getVariantById,deleteVariant,updateVariant,getAllProducts,addTenderForm,getAnnouncementFormById,
-    updateAnnouncementForm,deleteAnnouncementForm,addBanner,getBanner,updateBanner,addStockStatus,updateStockStatus}
+    updateAnnouncementForm,deleteAnnouncementForm,addBanner,getBanner,updateBanner,addStockStatus,updateStockStatus,addImage}
