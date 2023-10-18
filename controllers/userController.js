@@ -172,7 +172,7 @@ const resendEmail = async (req, res) => {
       // Check if the user exists
       const user = await userProfile.findOne({ where: { email: email } });
       if (!user) {
-        return res.status(404).json({ message: 'User not found.' });
+        return res.status(404).json({ message: 'Wrong Email / Password.' });
       }
   
       // Check if the user's email is verified

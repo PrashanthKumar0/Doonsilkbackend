@@ -37,78 +37,78 @@ const sequelize = require('sequelize');
 const randomstring = require('randomstring');
 
 const jwt = require('jsonwebtoken')
-const {JWT_SECRET} = process.env
+const { JWT_SECRET } = process.env
 
 
-  const generateToken = (userId) => {
-    try {
-      const token = jwt.sign({ id:userId}, process.env.JWT_SECRET, { expiresIn: '50h' });
-      return token;
-    } catch (err) {
-      console.error(err);
-      throw new Error('Failed to generate token');
+const generateToken = (userId) => {
+  try {
+    const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '50h' });
+    return token;
+  } catch (err) {
+    console.error(err);
+    throw new Error('Failed to generate token');
+  }
+};
+const saltRounds = 10;
+
+
+
+const Admin_signup = async (req, res) => {
+  try {
+    const { name, password } = req.body;
+
+    // Hash the password before storing it in the database
+    // const hashedPassword = await bcrypt.hash(password, 10);
+
+    const admin = await Admin.create({ name, password: password });
+
+    res.status(201).json({ message: 'Admin created successfully.', data: admin });
+  } catch (error) {
+    console.error('Error creating admin:', error);
+    res.status(500).json({ message: 'Error creating admin.' });
+  }
+};
+
+
+const Admin_login = async (req, res) => {
+  try {
+    const { name, password } = req.body;
+    const admin = await Admin.findOne({ where: { name } });
+    if (!admin) {
+      return res.status(401).json({ message: 'Invalid credentials.' });
     }
-  };
-const saltRounds = 10; 
-
-
-
-  const Admin_signup = async (req, res) => {
-    try {
-      const { name, password } = req.body;
-
-      // Hash the password before storing it in the database
-      // const hashedPassword = await bcrypt.hash(password, 10);
-      
-      const admin = await Admin.create({ name, password: password });
-
-      res.status(201).json({ message: 'Admin created successfully.', data: admin });
-    } catch (error) {
-      console.error('Error creating admin:', error);
-      res.status(500).json({ message: 'Error creating admin.' });
+    if (password !== admin.password) {
+      return res.status(401).json({ message: 'Invalid password.' });
     }
-  };
+    // Create a JWT token and send it to the client upon successful login
+    const token = generateToken(admin.admin_id); // Change this according to your token generation logic
+
+    // Update the user's token in the database
+    admin.token = token;
+    res.status(200).json({ message: 'Login successful.', token });
+  } catch (error) {
+    console.error('Error logging in:', error);
+    res.status(500).json({ message: 'Error logging in.' });
+  }
+};
 
 
-  const Admin_login = async (req, res) => {
-    try {
-      const { name, password } = req.body;
-      const admin = await Admin.findOne({ where: { name } });
-      if (!admin) {
-        return res.status(401).json({ message: 'Invalid credentials.' });
-      }
-      if (password !== admin.password) {
-        return res.status(401).json({ message: 'Invalid password.' });
-      }
-      // Create a JWT token and send it to the client upon successful login
-      const token = generateToken(admin.admin_id); // Change this according to your token generation logic
-  
-      // Update the user's token in the database
-      admin.token = token; 
-      res.status(200).json({ message: 'Login successful.', token });
-    } catch (error) {
-      console.error('Error logging in:', error);
-      res.status(500).json({ message: 'Error logging in.' });
-    }
-  };
+const getAllUsers = async (req, res) => {
+  try {
+    // Fetch all users from the database
+    const users = await userProfile.findAll();
 
-
-  const getAllUsers = async (req, res) => {
-    try {
-      // Fetch all users from the database
-      const users = await userProfile.findAll();
-  
-      return res.status(200).json({ message: 'Users retrieved successfully.', data: users });
-    } catch (error) {
-      console.error('Error getting users:', error);
-      res.status(500).json({ message: 'Error getting users.' });
-    }
-  };
+    return res.status(200).json({ message: 'Users retrieved successfully.', data: users });
+  } catch (error) {
+    console.error('Error getting users:', error);
+    res.status(500).json({ message: 'Error getting users.' });
+  }
+};
 
 
 
 
-  const { Op } = require('sequelize');
+const { Op } = require('sequelize');
 
 const getUsersByMonth = async (req, res) => {
   try {
@@ -133,8 +133,8 @@ const getUsersByMonth = async (req, res) => {
   }
 };
 
-  
-  
+
+
 const addProductWithVariants = async (req, res) => {
   try {
     const { name, description, category_id, price, discount_percentage, size, color, color_hex } = req.body;
@@ -183,7 +183,7 @@ const addProductWithVariants = async (req, res) => {
 
 const addVariant = async (req, res) => {
   try {
-    const { product_id, color, size ,color_hex} = req.body;
+    const { product_id, color, size, color_hex } = req.body;
     const images = req.files;
 
     // Check if the provided product_id exists in the main_product table
@@ -237,16 +237,16 @@ const updateMainProduct = async (req, res) => {
     };
 
     // Update image fields if images are provided
-    
-      if (images && images['image1'] && images['image1'][0]) {
-        updatedFields.image1 = images['image1'][0].filename;
-      }
-      if (images && images['image2'] && images['image2'][0]) {
-        updatedFields.image2 = images['image2'][0].filename;
-      }
-      if (images && images['image3'] && images['image3'][0]) {
-        updatedFields.image3 = images['image3'][0].filename;
-      }
+
+    if (images && images['image1'] && images['image1'][0]) {
+      updatedFields.image1 = images['image1'][0].filename;
+    }
+    if (images && images['image2'] && images['image2'][0]) {
+      updatedFields.image2 = images['image2'][0].filename;
+    }
+    if (images && images['image3'] && images['image3'][0]) {
+      updatedFields.image3 = images['image3'][0].filename;
+    }
 
     const [affectedRows] = await db.main_product.update(updatedFields, {
       where: {
@@ -423,7 +423,7 @@ const updateVariant = async (req, res) => {
 
 const getAllProducts = async (req, res) => {
   try {
-    const products = await db.main_product.findAll(); 
+    const products = await db.main_product.findAll();
 
     res.status(200).json({ data: products });
   } catch (error) {
@@ -466,7 +466,7 @@ const addTenderForm = async (req, res) => {
 const getAnnouncementFormById = async (req, res) => {
   try {
     const announcementForm = await db.tenderForm.findAll({
-      
+
     });
 
     if (!announcementForm) {
@@ -493,14 +493,18 @@ const updateAnnouncementForm = async (req, res) => {
     if (!existingAnnouncementForm) {
       return res.status(404).json({ message: 'Announcement form not found.' });
     }
+    if (is_active == 2) { // we use it to delete
+      existingAnnouncementForm.destroy();
+    } else {
 
-    // Update the announcement form data
-    await existingAnnouncementForm.update({
-      criteria,
-      datatype,
-      is_active,
-      text,
-    });
+      // Update the announcement form data
+      await existingAnnouncementForm.update({
+        criteria,
+        datatype,
+        is_active,
+        text,
+      });
+    }
 
     res.status(200).json({ message: 'Announcement form updated successfully.' });
   } catch (error) {
@@ -542,7 +546,7 @@ const addBanner = async (req, res) => {
       image1: image1 ? image1[0].filename : null,
       image2: image2 ? image2[0].filename : null,
       image3: image3 ? image3[0].filename : null,
-      banner_id:1
+      banner_id: 1
     });
     await newBanner.save();
 
@@ -590,7 +594,7 @@ const getBanner = async (req, res) => {
     const getBanner = await db.banner.findOne({
       where: { banner_id: 1 },
       order: [['createdAt', 'DESC']]
-      
+
     });
 
     if (!getBanner) {
@@ -643,18 +647,18 @@ const updateStockStatus = async (req, res) => {
   }
 };
 
-const addImage = async(req,res)=>{
+const addImage = async (req, res) => {
   try {
-  const image = req.file.filename
-  const addImage = await db.image.create({
-   image:image
-  })
-  await addImage.save
-  res.status(201).json({ message: 'image added successfully.', data: addImage });
-} catch (error) {
-  console.error('Error adding image:', error);
-  res.status(500).json({ message: 'Error adding image.' });
-}
+    const image = req.file.filename
+    const addImage = await db.image.create({
+      image: image
+    })
+    await addImage.save
+    res.status(201).json({ message: 'image added successfully.', data: addImage });
+  } catch (error) {
+    console.error('Error adding image:', error);
+    res.status(500).json({ message: 'Error adding image.' });
+  }
 
 }
 
@@ -662,6 +666,8 @@ const addImage = async(req,res)=>{
 
 
 
-  module.exports ={Admin_signup,Admin_login,getAllUsers,getUsersByMonth,addProductWithVariants,addVariant,updateMainProduct,
-    getMainProductById,deleteMainProduct,getVariantById,deleteVariant,updateVariant,getAllProducts,addTenderForm,getAnnouncementFormById,
-    updateAnnouncementForm,deleteAnnouncementForm,addBanner,getBanner,updateBanner,addStockStatus,updateStockStatus,addImage}
+module.exports = {
+  Admin_signup, Admin_login, getAllUsers, getUsersByMonth, addProductWithVariants, addVariant, updateMainProduct,
+  getMainProductById, deleteMainProduct, getVariantById, deleteVariant, updateVariant, getAllProducts, addTenderForm, getAnnouncementFormById,
+  updateAnnouncementForm, deleteAnnouncementForm, addBanner, getBanner, updateBanner, addStockStatus, updateStockStatus, addImage
+}
