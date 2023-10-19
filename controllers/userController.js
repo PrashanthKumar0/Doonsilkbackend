@@ -11,8 +11,8 @@ var wishlist = db.wishlist
 
 
 
-const { Op ,Sequelize} = require('sequelize');
-const {JWT_SECRET} = process.env
+const { Op, Sequelize } = require('sequelize');
+const { JWT_SECRET } = process.env
 const jwt = require('jsonwebtoken')
 var main_product = db.main_product
 const FuzzySet = require('fuzzyset');
@@ -40,7 +40,7 @@ const saltRounds = 10;
 
 
 const signupUsers = async (req, res) => {
-  const email = req.body.email;
+  const { email, name } = req.body;
   // Generate a 6-digit OTP
   const otp = randomstring.generate({ length: 6, charset: 'numeric' });
 
@@ -55,12 +55,13 @@ const signupUsers = async (req, res) => {
     // Save the user data with the OTP in the database
     const newUserData = await userProfile.create({
       email: email,
+      name: name,
       OTP: otp // Save the OTP to the 'token' field
     });
 
     const id = newUserData.user_id;
     console.log('New user created:', newUserData.toJSON());
-    res.status(201).json({ message: 'User created successfully.', id: id });
+    res.status(200).json({ message: 'User created successfully.', id: id });
   } catch (error) {
     console.error('Error sending email or creating user:', error);
     res.status(500).json({ message: 'Error sending email or creating user.' });
@@ -103,247 +104,247 @@ const resendEmail = async (req, res) => {
   }
 };
 
-  const verifyOTP = (req, res) => {
+const verifyOTP = (req, res) => {
 
-   const  user_id = req.params.id
-    const { otp } = req.body;
-  
-    userProfile.findOne({ where: { user_id } })
-      .then((existingUser) => {
-        if (!existingUser) {
-          return res.status(404).json({ message: 'User not found.' });
-        }
-  
-        if (existingUser.OTP === otp) {
-      
-          existingUser.update({ is_verified: true })
-            .then(() => {
-              return res.status(200).json({ message: 'OTP is valid. User verified successfully.' });
-            })
-            .catch((error) => {
-              console.error('Error updating user:', error);
-              return res.status(500).json({ message: 'Error updating user.' });
-            });
-        } else {
-          return res.status(400).json({ message: 'Invalid OTP. Please try again.' });
-        }
-      })
-      .catch((error) => {
-        console.error('Error finding user:', error);
-        return res.status(500).json({ message: 'Error finding user.' });
-      });
-  };
+  const user_id = req.params.id
+  const { otp } = req.body;
 
-
-  async function savePassword(req, res) {
-    try {
-      const { user_id } = req.body;
-      const { password } = req.body;
-      console.log(password);
-  
-      if (!password ) {
-        return res.status(400).json({ error: 'Passwords not found' });
-      }
-  
-      // const hashedPassword = await bcrypt.hash(password, 10);
-  
-      const user = await userProfile.findByPk(user_id);
-  
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-  
-      user.password = password;
-      await user.save();
-  
-      res.json({ message: 'Password saved successfully' });
-    } catch (error) {
-      console.error('Error saving password:', error);
-      res.status(500).json({ error: 'Failed to save password' });
-    }
-  }
-  
-
-
-  const loginUser = async (req, res) => {
-    try {
-      const { email, password } = req.body;
-  
-      // Check if the user exists
-      const user = await userProfile.findOne({ where: { email: email } });
-      if (!user) {
-        return res.status(404).json({ message: 'Wrong Email / Password.' });
-      }
-  
-      // Check if the user's email is verified
-      if (!user.is_verified) {
-        return res.status(401).json({ message: 'Email is not verified. Please verify your email first.' });
-      }
-  
-      console.log(password);
-      console.log(user.password);
-      // Hash the provided password using SHA-256 (You should use a secure hashing algorithm like bcrypt for passwords)
-  
-      // Check if the provided password matches the user's hashed password
-      if (password !== user.password) {
-        return res.status(401).json({ message: 'Invalid password.' });
-      }
-  
-      // Generate a new token for the user (change this according to your token generation logic)
-      const token = generateToken(user.user_id); // Change this according to your token generation logic
-      console.log(user.user_id);
-  
-      // Update the user's token in the database
-      user.token = token;
-      await user.save(); // Save the updated user instance to the database
-  
-      res.status(200).json({ message: 'User logged in successfully.', token });
-    } catch (error) {
-      console.error('Error logging in user:', error);
-      res.status(500).json({ message: 'Error logging in user.' });
-    }
-  };
-  
-
-  const addUserDetails = async (req, res) => {
-    try {
-      // Check for the JWT token in the request header
-      const token = req.headers.authorization?.split(' ')[1];
-      if (!token) {
-        return res.status(401).json({ error: 'Unauthorized: Token missing' });
-      }
-  
-      // Verify the token and get the user_id from the payload
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const userId = decoded.user_id;
-      console.log(userId);
-      if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized: Invalid token' });
-      }
-  
-      // Check if the user exists in the database
-      const existingUser = await userProfile.findOne({ where: { user_id: userId } });
+  userProfile.findOne({ where: { user_id } })
+    .then((existingUser) => {
       if (!existingUser) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-  
-      const { name, phone, password, address, pincode, gender } = req.body;
-  
-  
-      // Update the user details in the database
-      await userProfile.update(
-        {
-          name,
-          phone,
-          password,
-          address,
-          pincode,
-          gender,
-        },
-        { where: { user_id: userId } }
-      );
-  
-      // Respond with the updated user data
-      const updatedUser = await userProfile.findByPk(userId);
-      res.status(200).json({
-        message: 'User details updated successfully',
-        user: updatedUser,
-      });
-    } catch (error) {
-      console.error('Error adding user details:', error);
-      res.status(500).json({ error: 'Failed to add user details' });
-    }
-  };
-
-
-
-
-  const getUserDetails = async (req, res) => {
-    try {
-      // Check for the JWT token in the request header
-      const token = req.headers.authorization?.split(' ')[1];
-      if (!token) {
-        return res.status(401).json({ error: 'Unauthorized: Token missing' });
-      }
-  
-      // Verify the token and get the user_id from the payload
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const userId = decoded.user_id;
-      console.log(userId);
-      if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized: Invalid token' });
-      }
-  
-      // Retrieve the user details from the database
-      const userDetails = await userProfile.findOne({ where: { user_id: userId } });
-  
-      if (!userDetails) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-  
-      res.status(200).json({
-        message: 'User details retrieved successfully',
-        user: userDetails,
-      });
-    } catch (error) {
-      console.error('Error retrieving user details:', error);
-      res.status(500).json({ error: 'Failed to retrieve user details' });
-    }
-  };
-
-
-
-  const userLogout = (req, res) => {
-    const token = req.headers.authorization.split(' ')[1]; 
-    const decodedToken = jwt.decode(token);
-    const userid = decodedToken.user_id;
-  
-    // Remove token from user table in the database
-    userProfile.update({ token: null }, { where: { user_id: userid } })
-      .then(() => {
-        res.status(200).json({ message: 'User logged out successfully.' });
-      })
-      .catch((error) => {
-        console.error('Error logging out user:', error);
-        res.status(500).json({ message: 'Error logging out user.' });
-      });
-  };
-
-
-  const updatePassword = async (req, res) => {
-    try {
-      const { user_id, oldPassword, newPassword } = req.body;
-  
-      // Check if the user with the provided ID exists
-      const user = await userProfile.findByPk(user_id);
-      if (!user) {
         return res.status(404).json({ message: 'User not found.' });
       }
-  
-      // Compare the provided old password with the stored password
-      if (user.password !== oldPassword) {
-        return res.status(400).json({ message: 'Incorrect old password.' });
+
+      if (existingUser.OTP === otp) {
+
+        existingUser.update({ is_verified: true })
+          .then(() => {
+            return res.status(200).json({ message: 'OTP is valid. User verified successfully.' });
+          })
+          .catch((error) => {
+            console.error('Error updating user:', error);
+            return res.status(500).json({ message: 'Error updating user.' });
+          });
+      } else {
+        return res.status(400).json({ message: 'Invalid OTP. Please try again.' });
       }
-  
-      // Update the user's password
-      await userProfile.update(
-        { password: newPassword },
-        {
-          where: {
-            user_id,
-          },
-        }
-      );
-  
-      return res.status(200).json({ message: 'Password updated successfully.' });
-    } catch (error) {
-      console.error('Error updating password:', error);
-      res.status(500).json({ message: 'Error updating password.' });
+    })
+    .catch((error) => {
+      console.error('Error finding user:', error);
+      return res.status(500).json({ message: 'Error finding user.' });
+    });
+};
+
+
+async function savePassword(req, res) {
+  try {
+    const { user_id } = req.body;
+    const { password } = req.body;
+    console.log(password);
+
+    if (!password) {
+      return res.status(400).json({ error: 'Passwords not found' });
     }
-  };
-  
-  
- 
+
+    // const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await userProfile.findByPk(user_id);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    user.password = password;
+    await user.save();
+
+    res.json({ message: 'Password saved successfully' });
+  } catch (error) {
+    console.error('Error saving password:', error);
+    res.status(500).json({ error: 'Failed to save password' });
+  }
+}
+
+
+
+const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Check if the user exists
+    const user = await userProfile.findOne({ where: { email: email } });
+    if (!user) {
+      return res.status(404).json({ message: 'Wrong Email / Password.' });
+    }
+
+    // Check if the user's email is verified
+    if (!user.is_verified) {
+      return res.status(401).json({ message: 'Email is not verified. Please verify your email first.' });
+    }
+
+    console.log(password);
+    console.log(user.password);
+    // Hash the provided password using SHA-256 (You should use a secure hashing algorithm like bcrypt for passwords)
+
+    // Check if the provided password matches the user's hashed password
+    if (password !== user.password) {
+      return res.status(401).json({ message: 'Invalid password.' });
+    }
+
+    // Generate a new token for the user (change this according to your token generation logic)
+    const token = generateToken(user.user_id); // Change this according to your token generation logic
+    console.log(user.user_id);
+
+    // Update the user's token in the database
+    user.token = token;
+    await user.save(); // Save the updated user instance to the database
+
+    res.status(200).json({ message: 'User logged in successfully.', token });
+  } catch (error) {
+    console.error('Error logging in user:', error);
+    res.status(500).json({ message: 'Error logging in user.' });
+  }
+};
+
+
+const addUserDetails = async (req, res) => {
+  try {
+    // Check for the JWT token in the request header
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized: Token missing' });
+    }
+
+    // Verify the token and get the user_id from the payload
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.user_id;
+    console.log(userId);
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+    }
+
+    // Check if the user exists in the database
+    const existingUser = await userProfile.findOne({ where: { user_id: userId } });
+    if (!existingUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const { name, phone, password, address, pincode, gender } = req.body;
+
+
+    // Update the user details in the database
+    await userProfile.update(
+      {
+        name,
+        phone,
+        password,
+        address,
+        pincode,
+        gender,
+      },
+      { where: { user_id: userId } }
+    );
+
+    // Respond with the updated user data
+    const updatedUser = await userProfile.findByPk(userId);
+    res.status(200).json({
+      message: 'User details updated successfully',
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error('Error adding user details:', error);
+    res.status(500).json({ error: 'Failed to add user details' });
+  }
+};
+
+
+
+
+const getUserDetails = async (req, res) => {
+  try {
+    // Check for the JWT token in the request header
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized: Token missing' });
+    }
+
+    // Verify the token and get the user_id from the payload
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.user_id;
+    console.log(userId);
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+    }
+
+    // Retrieve the user details from the database
+    const userDetails = await userProfile.findOne({ where: { user_id: userId } });
+
+    if (!userDetails) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.status(200).json({
+      message: 'User details retrieved successfully',
+      user: userDetails,
+    });
+  } catch (error) {
+    console.error('Error retrieving user details:', error);
+    res.status(500).json({ error: 'Failed to retrieve user details' });
+  }
+};
+
+
+
+const userLogout = (req, res) => {
+  const token = req.headers.authorization.split(' ')[1];
+  const decodedToken = jwt.decode(token);
+  const userid = decodedToken.user_id;
+
+  // Remove token from user table in the database
+  userProfile.update({ token: null }, { where: { user_id: userid } })
+    .then(() => {
+      res.status(200).json({ message: 'User logged out successfully.' });
+    })
+    .catch((error) => {
+      console.error('Error logging out user:', error);
+      res.status(500).json({ message: 'Error logging out user.' });
+    });
+};
+
+
+const updatePassword = async (req, res) => {
+  try {
+    const { user_id, oldPassword, newPassword } = req.body;
+
+    // Check if the user with the provided ID exists
+    const user = await userProfile.findByPk(user_id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    // Compare the provided old password with the stored password
+    if (user.password !== oldPassword) {
+      return res.status(400).json({ message: 'Incorrect old password.' });
+    }
+
+    // Update the user's password
+    await userProfile.update(
+      { password: newPassword },
+      {
+        where: {
+          user_id,
+        },
+      }
+    );
+
+    return res.status(200).json({ message: 'Password updated successfully.' });
+  } catch (error) {
+    console.error('Error updating password:', error);
+    res.status(500).json({ message: 'Error updating password.' });
+  }
+};
+
+
+
 const changePassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -766,8 +767,8 @@ const getRandomProducts = async (req, res) => {
   try {
     const randomProducts = await db.main_product.findAll({
       include: {
-        model: db.new_varient, 
-        required: false, 
+        model: db.new_varient,
+        required: false,
       },
       order: db.Sequelize.literal('RAND()'), // Order by random
       limit: 3, // Limit to three results
@@ -823,8 +824,8 @@ const order = async (req, res) => {
       state,
       postalCode,
       quantity,
-   
-      
+
+
     } = req.body;
 
     // Check if user_id exists
@@ -836,7 +837,7 @@ const order = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });
     }
-   const email = user.email; 
+    const email = user.email;
     // Create a new order in the database
     const newOrder = await db.orders.create({
       phone,
@@ -849,7 +850,7 @@ const order = async (req, res) => {
       postalCode,
       user_id: userId, // Use lowercase user_id
       quantity,
-  
+
     });
     await CartItems.destroy({
       where: {
@@ -863,10 +864,10 @@ const order = async (req, res) => {
              User ID: ${userId}\n
              Quantity: ${quantity}\n
              `;
-      await sendorderMail(email, mailSubject, content);
+    await sendorderMail(email, mailSubject, content);
 
     // Send email notification to admin
-  ;
+    ;
 
     res.status(201).json({ message: 'Order confirmed successfully', data: newOrder });
   } catch (error) {
@@ -883,7 +884,7 @@ const getcheckoutProducts = async (req, res) => {
     if (!token) {
       return res.status(401).json({ error: 'Unauthorized: Token missing' });
     }
-    
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.user_id;
     if (!userId) {
@@ -896,8 +897,8 @@ const getcheckoutProducts = async (req, res) => {
         user_id: userId,
       },
       include: {
-       model: main_product ,
-       attributes: ['product_id', 'name', 'price'],  
+        model: main_product,
+        attributes: ['product_id', 'name', 'price'],
       },
     });
 
@@ -913,8 +914,31 @@ const getcheckoutProducts = async (req, res) => {
 
 
 
-  module.exports = { signupUsers,verifyOTP,resendEmail,savePassword,addUserDetails,getUserDetails,loginUser,userLogout,changePassword,
-    searchProduct,addToCart,
-  addToWishlist,removeFromWishlist,getWishlist,updateWishlistItem,
-  getUserCart,updatePassword,updateCartItem,deleteCartItem,getrandomroductById,getRandomProducts,order,getcheckoutProducts};
+const contactForm = async (req, res) => {
+  try {
+    const { name, email, message } = req.body;
+    // send mail to self
+    // sendMail(process.env.SMTP_MAIL,`User ${name} Contacted You`,`
+    //   ${name} with email <a href="mailto:${email}">${email}</a>
+
+    //   sent you following message :
+
+    //   <pre>${message}</pre>
+    // `);
+    res.status(200).json({ message: 'Message Sent Successfully.' });
+  } catch (error) {
+    console.error('Error submitting contact form:', error);
+    res.status(500).json({ message: 'Error submitting contact form .' });
+  }
+};
+
+
+
+
+module.exports = {
+  signupUsers, verifyOTP, resendEmail, savePassword, addUserDetails, getUserDetails, loginUser, userLogout, changePassword,
+  searchProduct, addToCart,
+  addToWishlist, removeFromWishlist, getWishlist, updateWishlistItem,
+  getUserCart, updatePassword, updateCartItem, deleteCartItem, getrandomroductById, getRandomProducts, order, getcheckoutProducts, contactForm
+};
 
