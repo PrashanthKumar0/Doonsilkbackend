@@ -148,6 +148,8 @@ app.get('/getRandomProducts/', userController.getRandomProducts)
 app.post('/order/', isAuthorize, userController.order)
 app.get('/getcheckoutProducts', isAuthorize, userController.getcheckoutProducts)
 app.get('/contactForm/', userController.contactForm)
+app.get('/forgotPassword/', userController.forgotPassword)
+app.get('/changePassword/', userController.changePassword)
 
 
 

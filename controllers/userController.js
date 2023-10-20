@@ -11,7 +11,7 @@ var wishlist = db.wishlist
 
 
 
-const { Op, Sequelize } = require('sequelize');
+const { Op, Sequelize, UUID } = require('sequelize');
 const { JWT_SECRET } = process.env
 const jwt = require('jsonwebtoken')
 var main_product = db.main_product
@@ -169,7 +169,6 @@ async function savePassword(req, res) {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-
     // Check if the user exists
     const user = await userProfile.findOne({ where: { email: email } });
     if (!user) {
@@ -345,40 +344,40 @@ const updatePassword = async (req, res) => {
 
 
 
-const changePassword = async (req, res) => {
-  try {
-    const { email } = req.body;
+// const changePassword = async (req, res) => {
+//   try {
+//     const { email } = req.body;
 
-    // Check if the user exists
-    const user = await userProfile.findOne({ where: { email: email } });
-    if (!user) {
-      return res.status(404).json({ message: 'User not found.' });
-    }
+//     // Check if the user exists
+//     const user = await userProfile.findOne({ where: { email: email } });
+//     if (!user) {
+//       return res.status(404).json({ message: 'User not found.' });
+//     }
 
-    // Generate a unique identifier (you can use user ID or any other unique field)
-    const identifier = user.user_id; // Replace this with the unique identifier
+//     // Generate a unique identifier (you can use user ID or any other unique field)
+//     const identifier = user.user_id; // Replace this with the unique identifier
 
-    // Create the link with the unique identifier and the website password reset page route
-    const resetLink = `https://yourwebsite.com/reset-password?user=${identifier}`;
+//     // Create the link with the unique identifier and the website password reset page route
+//     const resetLink = `https://yourwebsite.com/reset-password?user=${identifier}`;
 
-    // Create the email content with the reset link
-    const mailSubject = 'Reset Password Link';
-    const content = `<p>Click the link below to reset your password:<br><a href="${resetLink}">${resetLink}</a></p>`;
+//     // Create the email content with the reset link
+//     const mailSubject = 'Reset Password Link';
+//     const content = `<p>Click the link below to reset your password:<br><a href="${resetLink}">${resetLink}</a></p>`;
 
-    try {
-      // Send the email with the reset link
-      await sendMail(email, mailSubject, content);
+//     try {
+//       // Send the email with the reset link
+//       await sendMail(email, mailSubject, content);
 
-      res.status(200).json({ message: 'Reset password link sent successfully. Please check your email.' });
-    } catch (error) {
-      console.error('Error sending email:', error);
-      res.status(500).json({ message: 'Error sending email.' });
-    }
-  } catch (error) {
-    console.error('Error changing password:', error);
-    res.status(500).json({ message: 'Error changing password.' });
-  }
-};
+//       res.status(200).json({ message: 'Reset password link sent successfully. Please check your email.' });
+//     } catch (error) {
+//       console.error('Error sending email:', error);
+//       res.status(500).json({ message: 'Error sending email.' });
+//     }
+//   } catch (error) {
+//     console.error('Error changing password:', error);
+//     res.status(500).json({ message: 'Error changing password.' });
+//   }
+// };
 
 const searchProduct = async (req, res) => {
   try {
@@ -797,7 +796,10 @@ const getRandomProducts = async (req, res) => {
     res.status(500).json({ message: 'Error fetching random products.' });
   }
 };
-const sendorderMail = require('../helper/orderSendMail')
+const sendorderMail = require('../helper/orderSendMail');
+const { randomUUID, Hash, createHash } = require('crypto');
+const { atob } = require('buffer');
+const { frontend_url } = require('../url');
 
 
 const order = async (req, res) => {
@@ -918,13 +920,13 @@ const contactForm = async (req, res) => {
   try {
     const { name, email, message } = req.body;
     // send mail to self
-    // sendMail(process.env.SMTP_MAIL,`User ${name} Contacted You`,`
-    //   ${name} with email <a href="mailto:${email}">${email}</a>
+    sendMail(process.env.SMTP_MAIL, `User ${name} Contacted You`, `
+      ${name} with email <a href="mailto:${email}">${email}</a>
 
-    //   sent you following message :
+      sent you following message :
 
-    //   <pre>${message}</pre>
-    // `);
+      <pre>${message}</pre>
+    `);
     res.status(200).json({ message: 'Message Sent Successfully.' });
   } catch (error) {
     console.error('Error submitting contact form:', error);
@@ -932,13 +934,77 @@ const contactForm = async (req, res) => {
   }
 };
 
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const token = randomstring.generate({
+      length: Math.floor(10 + Math.random() * 10),
+    });
+    const userDetails = await userProfile.findOne({ where: { email } });
+
+    if (!userDetails) {
+      return res.status(404).json({ message: 'User Not Found.' });
+    }
+
+    let link = `${frontend_url}/reset-pass?tok=${token}&id=${userDetails.user_id}`;
+
+    userDetails.update({ OTP: token });
+
+    sendMail(process.env.SMTP_MAIL, `Your request to reset password`, `
+      visit : <a href='${link}'>${link}</a>
+      to reset your password.
+    `);
+
+    return res.status(200).json({ message: 'We Have Sent you an email to reset password.' });
+
+  } catch (error) {
+    console.error('Error sending email:', error);
+    return res.status(500).json({ message: 'Error sending email.' });
+  }
+}
+
+
+
+const changePassword = async (req, res) => {
+  try {
+    const { id, newPassword, token } = req.body;
+    
+    // Check if the user with the provided ID exists
+    const user = await userProfile.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+    // console.log({ token, otp: user.OTP });
+    
+    if (token != user.OTP) {
+      return res.status(404).json({ message: 'Youre not authorised.' });
+    }
+
+    // Update the user's password
+    await userProfile.update(
+      { password: newPassword },
+      {
+        where: {
+          user_id: id,
+        },
+      }
+    );
+
+    return res.status(200).json({ message: 'Password updated successfully.' });
+  } catch (error) {
+    console.error('Error updating password:', error);
+    res.status(500).json({ message: 'Error updating password.' });
+  }
+};
+
+
 
 
 
 module.exports = {
-  signupUsers, verifyOTP, resendEmail, savePassword, addUserDetails, getUserDetails, loginUser, userLogout, changePassword,
+  signupUsers, verifyOTP, resendEmail, savePassword, addUserDetails, getUserDetails, loginUser, userLogout,
   searchProduct, addToCart,
   addToWishlist, removeFromWishlist, getWishlist, updateWishlistItem,
-  getUserCart, updatePassword, updateCartItem, deleteCartItem, getrandomroductById, getRandomProducts, order, getcheckoutProducts, contactForm
+  getUserCart, updatePassword, updateCartItem, deleteCartItem, getrandomroductById, getRandomProducts, order, getcheckoutProducts, contactForm, forgotPassword, changePassword
 };
 
