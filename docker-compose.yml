@@ -16,10 +16,10 @@ services:
       - JWT_SECRET=mysupersecretkey
       - SMTP_MAIL=doonsilk7@gmail.com 
       - SMTP_PASSWORD=bdcivnpdpnqjxwsz
-      - MYSQL_USER=doon
-      - MYSQL_PASSWORD=doonAli321
-      - MYSQL_DATABASE=doon-ecommerce
-      - MYSQL_HOST=doon-ecommerce-db  
+      - MYSQL_USER=nikhil
+      - MYSQL_PASSWORD=nikhil
+      - MYSQL_DATABASE=doon
+      - MYSQL_HOST=doon-ecommerce-db
   doon-ecommerce-db:
     image: mariadb:latest
     restart: always
