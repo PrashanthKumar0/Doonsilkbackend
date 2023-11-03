@@ -108,7 +108,7 @@ const resendEmail = async (req, res) => {
 
 const verifyOTP = (req, res) => {
 
-  const user_id = req.params.id
+  const user_id = req.params.id;
   const { otp } = req.body;
 
   userProfile.findOne({ where: { user_id } })
@@ -937,8 +937,12 @@ const contactForm = async (req, res) => {
 };
 
 const forgotPassword = async (req, res) => {
+  const { email } = req.body;
   try {
-    const { email } = req.body;
+    if (!email) {
+      return res.status(404).json({ message: 'Please Fill In Email Field.' });
+    }
+    console.log('sending forgot pwd ad : ', email);
     const token = randomstring.generate({
       length: Math.floor(10 + Math.random() * 10),
     });
@@ -952,7 +956,11 @@ const forgotPassword = async (req, res) => {
 
     userDetails.update({ OTP: token });
 
-    sendMail(process.env.SMTP_MAIL, `Your request to reset password`, `
+    // sendMail(process.env.SMTP_MAIL, `Your request to reset password`, `
+    //   visit : <a href='${link}'>${link}</a>
+    //   to reset your password.
+    // `);
+    sendMail(email, `Your request to reset password`, `
       visit : <a href='${link}'>${link}</a>
       to reset your password.
     `);
@@ -970,14 +978,14 @@ const forgotPassword = async (req, res) => {
 const changePassword = async (req, res) => {
   try {
     const { id, newPassword, token } = req.body;
-    
+
     // Check if the user with the provided ID exists
     const user = await userProfile.findByPk(id);
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });
     }
     // console.log({ token, otp: user.OTP });
-    
+
     if (token != user.OTP) {
       return res.status(404).json({ message: 'Youre not authorised.' });
     }
