@@ -40,6 +40,7 @@ const saltRounds = 10;
 
 
 const signupUsers = async (req, res) => {
+  console.log('/signup');
   const { email, name } = req.body;
   // Generate a 6-digit OTP
   const otp = randomstring.generate({ length: 6, charset: 'numeric' });
@@ -50,6 +51,7 @@ const signupUsers = async (req, res) => {
 
   try {
     // Send the email with the OTP
+    console.log('sending email');
     await sendMail(email, mailSubject, content);
 
     // Save the user data with the OTP in the database
