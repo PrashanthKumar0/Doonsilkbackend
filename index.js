@@ -147,7 +147,7 @@ app.get('/getWishlist/', isAuthorize, userController.getWishlist)
 app.get('/getRandomProducts/', userController.getRandomProducts)
 app.post('/order/', isAuthorize, userController.order)
 app.get('/getcheckoutProducts', isAuthorize, userController.getcheckoutProducts)
-app.get('/contactForm/', userController.contactForm)
+app.post('/contactForm/', userController.contactForm)
 app.post('/forgotPassword/', userController.forgotPassword)
 app.get('/changePassword/', userController.changePassword)
 
