@@ -174,7 +174,7 @@ const addProductWithVariants = async (req, res) => {
 
     const newProduct = await db.main_product.create(newProductData);
 
-    res.status(201).json({ message: 'Main product added successfully.', data: newProduct });
+    res.status(200).json({ message: 'Main product added successfully.', data: newProduct });
   } catch (error) {
     console.error('Error adding main product:', error);
     res.status(500).json({ message: 'Error adding main product.' });

@@ -149,7 +149,7 @@ app.post('/order/', isAuthorize, userController.order)
 app.get('/getcheckoutProducts', isAuthorize, userController.getcheckoutProducts)
 app.post('/contactForm/', userController.contactForm)
 app.post('/forgotPassword/', userController.forgotPassword)
-app.get('/changePassword/', userController.changePassword)
+app.post('/changePassword/', userController.changePassword)
 
 
 
