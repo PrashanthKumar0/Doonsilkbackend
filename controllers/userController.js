@@ -108,7 +108,7 @@ const resendEmail = async (req, res) => {
 
 const verifyOTP = (req, res) => {
 
-  const user_id = req.param/s.id;
+  const user_id = req.params.id;
   const { otp } = req.body;
 
   userProfile.findOne({ where: { user_id } })
