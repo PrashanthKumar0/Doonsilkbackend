@@ -149,8 +149,7 @@ const addProductWithVariants = async (req, res) => {
     if (!existingDescription) {
       return res.status(400).json({ message: 'Invalid category_id. Category not found.' });
     }
-
-    // Create the main product
+  
     const newProductData = {
       name,
       description,
@@ -180,6 +179,7 @@ const addProductWithVariants = async (req, res) => {
     res.status(500).json({ message: 'Error adding main product.' });
   }
 };
+
 
 const addVariant = async (req, res) => {
   try {
@@ -215,18 +215,20 @@ const addVariant = async (req, res) => {
 
 const updateMainProduct = async (req, res) => {
   try {
-    const { product_id } = req.body;
 
-    // Check if product_id exists in the table
+    const { product_id, name, description, category_id, price, discount_percentage, size, color, color_hex } = req.body;
+    const images = req.files;
+    // console.log(product_id);
+
+    // Check if the product exists
     const existingProduct = await db.main_product.findByPk(product_id);
+
     if (!existingProduct) {
-      return res.status(404).json({ message: 'Main product not foundsw.' });
+      return res.status(404).json({ message: 'Product not found.' });
     }
 
-    const { name, description, category_id, price, discount_percentage, size, color } = req.body;
-    const images = req.files;
-
-    const updatedFields = {
+    // Update the main product
+    const updatedProductData = {
       name,
       description,
       category_id,
@@ -234,37 +236,27 @@ const updateMainProduct = async (req, res) => {
       discount_percentage,
       size,
       color,
+      color_hex,
     };
 
-    // Update image fields if images are provided
-    
-      if (images && images['image1'] && images['image1'][0]) {
-        updatedFields.image1 = images['image1'][0].filename;
-      }
-      if (images && images['image2'] && images['image2'][0]) {
-        updatedFields.image2 = images['image2'][0].filename;
-      }
-      if (images && images['image3'] && images['image3'][0]) {
-        updatedFields.image3 = images['image3'][0].filename;
-      }
-
-    const [affectedRows] = await db.main_product.update(updatedFields, {
-      where: {
-        product_id: product_id,
-      },
-    });
-
-    if (affectedRows === 0) {
-      return res.status(404).json({ message: 'Product value is still same no changed found' });
+    if (images && images['image1'] && images['image1'][0]) {
+      updatedProductData.image1 = images['image1'][0].filename;
+    }
+    if (images && images['image2'] && images['image2'][0]) {
+      updatedProductData.image2 = images['image2'][0].filename;
+    }
+    if (images && images['image3'] && images['image3'][0]) {
+      updatedProductData.image3 = images['image3'][0].filename;
     }
 
-    res.status(200).json({ message: 'Main product updated successfully.' });
+    await existingProduct.update(updatedProductData);
+
+    res.status(200).json({ message: 'Product updated successfully.' });
   } catch (error) {
-    console.error('Error updating main product:', error);
-    res.status(500).json({ message: 'Error updating main product.' });
+    console.error('Error updating product:', error);
+    res.status(500).json({ message: 'Error updating product.' });
   }
 };
-
 const getMainProductById = async (req, res) => {
   try {
     const { product_id } = req.params;
