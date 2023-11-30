@@ -79,12 +79,22 @@ const { log } = require("console");
  app.post('/Admin_signup',adminController.Admin_signup)
  app.get('/Admin_login',adminController.Admin_login)
 
-
-app.post('/addProductWithVariants', upload.fields([
-    { name: 'image1', maxCount: 1 },
-    { name: 'image2', maxCount: 1 },
-    { name: 'image3', maxCount: 1 },
-  ]), adminController.addProductWithVariants);
+app.post(
+    '/addProductWithVariants',
+    (req, res, next) => {
+    //   console.log('Before upload.fields middleware:', req.files);
+      next();
+    },
+    upload.fields([
+      { name: 'image1', maxCount: 1 },
+      { name: 'image2', maxCount: 1 },
+      { name: 'image3', maxCount: 1 },
+    ]),
+    (req, res) => {
+    //   console.log('After upload.fields middleware:', req.files);
+      adminController.addProductWithVariants(req, res);
+    }
+  );
 
   app.post('/addVariant', upload.fields([{ name: 'image1', maxCount: 1 }, { name: 'image2', maxCount: 1 },{name: 'image3', maxCount: 1 }]),
    adminController.addVariant);
