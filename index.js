@@ -203,7 +203,7 @@ app.post('/changePassword/', userController.changePassword)
 
 
 app.get('/api', (req, res) => {
-    res.send(' hello world')
+    res.send('v0.0')
 })
 
 
