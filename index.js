@@ -69,7 +69,8 @@ app.get('/get_category/:category_id', categoryController.get_category)
 app.get('/get_all_categories/', categoryController.get_all_categories)
 
 
-app.post('/update-categories/', upload.single('image'), categoryController.update_category)
+//app.post('/update-categories/', upload.single('image'), categoryController.update_category)
+app.post('/update-categories', categoryController.update_category)
 app.post('/delete_category/', categoryController.delete_category)
 // app.post('/createProduct/:category_id',upload.single('image'),productController.createProduct)
 app.get('/getMainProductById/:product_id', adminController.getMainProductById)
@@ -203,7 +204,7 @@ app.post('/changePassword/', userController.changePassword)
 
 
 app.get('/api', (req, res) => {
-    res.send('v0.0')
+    res.send('v0.01')
 })
 
 
