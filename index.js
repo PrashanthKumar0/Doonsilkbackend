@@ -68,7 +68,7 @@ const { log } = require("console");
 
  
 // app.post('/update-categories/',upload.single('image'),categoryController.update_category)
- app.post('/update-categories/',categoryController.update_category)
+ app.post('/update-categories',categoryController.update_category)
 
  app.post('/delete_category/',categoryController.delete_category)
  // app.post('/createProduct/:category_id',upload.single('image'),productController.createProduct)
