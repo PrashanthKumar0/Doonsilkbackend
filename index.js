@@ -199,7 +199,7 @@ app.post(
 
 
 app.get('/api', (req, res) => {
-    res.send('v0.0')
+    res.send('v0.01')
 })
 
 
